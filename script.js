@@ -19,6 +19,35 @@ nav.querySelectorAll('a').forEach((link) => link.addEventListener('click', () =>
   lucide.createIcons();
 }));
 
+const navLinks = [...nav.querySelectorAll('a[href^="#"]')];
+const sections = navLinks
+  .map((link) => document.querySelector(link.getAttribute('href')))
+  .filter(Boolean);
+
+const setActiveNavLink = (id) => {
+  navLinks.forEach((link) => {
+    const isActive = link.getAttribute('href') === `#${id}`;
+    link.classList.toggle('active', isActive);
+    if (isActive) {
+      link.setAttribute('aria-current', 'page');
+    } else {
+      link.removeAttribute('aria-current');
+    }
+  });
+};
+
+setActiveNavLink('home');
+
+const sectionObserver = new IntersectionObserver((entries) => {
+  const visibleSection = entries
+    .filter((entry) => entry.isIntersecting)
+    .sort((first, second) => second.intersectionRatio - first.intersectionRatio)[0];
+
+  if (visibleSection) setActiveNavLink(visibleSection.target.id);
+}, { rootMargin: '-25% 0px -65% 0px', threshold: [0, 0.25, 0.5, 0.75, 1] });
+
+sections.forEach((section) => sectionObserver.observe(section));
+
 const contactForm = document.getElementById('contact-form');
 
 contactForm?.addEventListener('submit', (event) => {
@@ -60,6 +89,14 @@ if (heroTitle && titlePrefix && titleStudent && !window.matchMedia('(prefers-red
 
     heroTitle.classList.remove('is-typing');
     heroTitle.classList.add('is-typed');
+    window.setTimeout(() => {
+      titlePrefix.textContent = '';
+      titleStudent.textContent = '';
+      characterIndex = 0;
+      heroTitle.classList.remove('is-typed');
+      heroTitle.classList.add('is-typing');
+      typeTitle();
+    }, 1400);
   };
 
   window.setTimeout(typeTitle, 250);
